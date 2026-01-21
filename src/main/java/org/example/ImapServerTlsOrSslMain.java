@@ -3,6 +3,7 @@ package org.example;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -26,11 +27,11 @@ public class ImapServerTlsOrSslMain {
 
 		String keystoreFile = (args.length > 1 && args[1] != null && !args[1].isBlank())
 			? args[1]
-			: ImapsServerMain.class.getClassLoader().getResource("keystore.jks").getPath();
+			: null;  // null means use default from resources
 
 		String keystorePassword = (args.length > 2 && args[2] != null && !args[2].isBlank())
 			? args[2]
-			: "qwe";
+			: null;  // null means use default password
 
 		if (!serverType.equals("TLS") && !serverType.equals("SSL")) {
 			System.err.println("Invalid server type. Use 'TLS' or 'SSL'");
@@ -56,14 +57,35 @@ public class ImapServerTlsOrSslMain {
 		}
 	}
 
-	private static SSLContext createSSLContext(String keystoreFile, String password) throws Exception {
-		KeyStore keyStore = KeyStore.getInstance("PKCS12");
-		try (FileInputStream fis = new FileInputStream(keystoreFile)) {
-			keyStore.load(fis, password.toCharArray());
+	private static SSLContext createSSLContext(String keystorePath, String password) throws Exception {
+		KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+		InputStream keyStoreIS;
+		char[] keyStorePassphrase;
+
+		if (keystorePath == null) {
+			// Use default keystore from resources
+			keyStoreIS = ImapServerTlsOrSslMain.class.getClassLoader()
+				.getResourceAsStream("keystore.jks");
+			if (keyStoreIS == null) {
+				throw new IllegalStateException("Default keystore not found in resources: keystore.jks");
+			}
+			keyStorePassphrase = "qwe".toCharArray();
+			System.out.println("Loading default keystore from resources");
+		} else {
+			// Use provided keystore file path
+			keyStoreIS = new FileInputStream(keystorePath);
+			keyStorePassphrase = password.toCharArray();
+			System.out.println("Loading keystore from: " + keystorePath);
+		}
+
+		try {
+			keyStore.load(keyStoreIS, keyStorePassphrase);
+		} finally {
+			keyStoreIS.close();
 		}
 
 		KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-		kmf.init(keyStore, password.toCharArray());
+		kmf.init(keyStore, keyStorePassphrase);
 
 		SSLContext sslContext = SSLContext.getInstance("TLS");
 		sslContext.init(kmf.getKeyManagers(), null, null);
