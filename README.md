@@ -31,7 +31,7 @@ direct SSL/TLS (IMAPS) connections.
 
 ## Usage
 
-### Basic Usage - STARTTLS Mode (Default)
+### Basic Usage - TLS Mode (Default)
 
 Starts IMAP server with STARTTLS support using bundled certificate:
 
@@ -39,7 +39,7 @@ Starts IMAP server with STARTTLS support using bundled certificate:
 java -jar imap-server-tls-ssl.jar
 ```
 
-### SSL Mode (Direct TLS)
+### SSL Mode
 
 Starts IMAPS server with immediate SSL connection:
 
