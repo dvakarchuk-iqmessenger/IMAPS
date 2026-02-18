@@ -20,6 +20,7 @@ public class ImapServerTlsOrSslMain {
 	private static final String DEFAULT_PASSWORD = "password";
 
 	public static void main(String[] args) throws Exception {
+		System.out.println("Starting FakeSMTP with arguments: " + String.join(" ", args));
 		// Parse arguments: [TYPE] [KEYSTORE_PATH] [KEYSTORE_PASSWORD]
 		String serverType = (args.length > 0 && args[0] != null && !args[0].isBlank())
 			? args[0].toUpperCase()
